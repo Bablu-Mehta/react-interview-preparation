@@ -1,4 +1,5 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import "./userlist.css";
 
 interface UserData {
   id: number;
@@ -36,13 +37,16 @@ const Userlist = () => {
   }, []);
   return (
     <>
+    {!loading && !error && userList.length === 0 && (
+  <div className="empty">No users found.</div>
+)}
       {loading ? (
-        "Loading..."
+        <div className="spinner"></div>
       ) : (
         <>
-          <table aria-label="User List">
-            <caption>User List</caption>
-            <thead>
+          <table aria-label="User List" className="table_container">
+            <caption className="heading">User List</caption>
+            <thead className="thead">
               <tr>
                 <th>Sr No.</th>
                 <th>Name</th>
