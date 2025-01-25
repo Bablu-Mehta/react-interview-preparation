@@ -16,6 +16,9 @@ const Userlist = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchedUser, setSearchedUser] = useState<any>({});
+
   const fetchUserList = async (): Promise<void> => {
     try {
       setLoading(true);
@@ -35,15 +38,49 @@ const Userlist = () => {
   useEffect(() => {
     fetchUserList();
   }, []);
+
+  useEffect(() => {
+    if (searchQuery == "") {
+      setSearchedUser({});
+    }
+
+    if (searchQuery) {
+      const filteredUser = userList?.find((user) => {
+        return (
+          user?.name
+            .toLowerCase()
+            .includes(searchQuery?.trim().toLowerCase()) ||
+          user?.email
+            .toLowerCase()
+            .includes(searchQuery?.trim().toLowerCase()) ||
+          user?.company?.name
+            .toLowerCase()
+            .includes(searchQuery?.trim().toLowerCase())
+        );
+      });
+      setSearchedUser(filteredUser);
+    }
+  }, [searchQuery, userList]);
   return (
     <>
-    {!loading && !error && userList.length === 0 && (
-  <div className="empty">No users found.</div>
-)}
+      {!loading && !error && userList.length === 0 && (
+        <div className="empty">No users found.</div>
+      )}
       {loading ? (
         <div className="spinner"></div>
       ) : (
         <>
+          <div className="search_container">
+            <input
+              className="search_input"
+              onChange={(e) => setSearchQuery(e?.target?.value)}
+              type="text"
+              value={searchQuery}
+              name="search"
+              placeholder="Search"
+            />
+            {/* <button className="search_button">Search</button> */}
+          </div>
           <table aria-label="User List" className="table_container">
             <caption className="heading">User List</caption>
             <thead className="thead">
@@ -57,7 +94,12 @@ const Userlist = () => {
             {userList?.length > 0 &&
               userList?.map((user, index) => {
                 return (
-                  <tr key={user?.id}>
+                  <tr
+                    className={
+                      searchedUser?.id == user?.id ? "highLight_row" : ""
+                    }
+                    key={user?.id}
+                  >
                     <td>{index + 1}</td>
                     <td>{user?.name}</td>
                     <td>{user?.email}</td>
