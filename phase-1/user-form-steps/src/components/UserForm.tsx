@@ -1,6 +1,8 @@
 import { useFormik } from "formik";
-import { useState } from "react";
+import {  MouseEvent, useState } from "react";
 import * as yup from "yup";
+import "./userFrom.css";
+
 const UserForm = () => {
   const [step, setStep] = useState<number>(1);
 
@@ -24,8 +26,8 @@ const UserForm = () => {
       zip: "",
     },
     validationSchema: validation,
-    validateOnChange: false, // Disable validation on field change
-    validateOnBlur: false, // Disable validation on field blur
+    validateOnChange: false,
+    validateOnBlur: false,
     onSubmit: () => {
       alert("form submitted successfully");
       formik.resetForm();
@@ -35,9 +37,10 @@ const UserForm = () => {
 
   const handleValueChange = (value: string, name: string) => {
     formik.setFieldValue(name, value);
+    formik.setFieldError(name, "");
   };
 
-  const handleNext = () => {
+  const handleNext = (e: MouseEvent<HTMLButtonElement>) => {
     if (step == 1) {
       if (!formik?.values?.email || !formik?.values?.name) {
         return;
@@ -51,14 +54,19 @@ const UserForm = () => {
         return;
       }
     }
-    formik.setErrors({});
-    formik.setTouched({});
+
+    // formik.setErrors({});
+    // formik.setFieldError("city", "");
+    // formik.setFieldError("street", "");
+    // formik.setFieldError("zip", "");
+
     setStep((prev) => prev + 1);
   };
 
   return (
-    <div>
-      <form onSubmit={formik.handleSubmit}>
+    <div className="main_container">
+      <form onSubmit={formik.handleSubmit} className="form-container">
+        <h2>Step: {step}</h2>
         {step == 1 && (
           <>
             <div className="input_container">
@@ -138,19 +146,20 @@ const UserForm = () => {
           </div>
         )}
 
-        {step > 1 && (
-          <button
-            onClick={() => {
-              setStep((prev) => prev - 1);
-              formik.setErrors({});
-            }}
-          >
-            Previous
-          </button>
-        )}
-        {step < 3 && <button onClick={handleNext}>Next</button>}
+        <div className="button_container">
+          {step > 1 && (
+            <button
+              onClick={() => {
+                setStep((prev) => prev - 1);
+              }}
+            >
+              Previous
+            </button>
+          )}
+          {step < 3 && <button type="submit" >Next</button>}
 
-        {step == 3 && <button type="submit">Submit</button>}
+          {step == 3 && <button type="submit">Submit</button>}
+        </div>
       </form>
     </div>
   );
