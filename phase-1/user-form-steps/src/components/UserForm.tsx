@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import {  MouseEvent, useState } from "react";
+import { useState } from "react";
 import * as yup from "yup";
 import "./userFrom.css";
 
@@ -14,7 +14,10 @@ const UserForm = () => {
       .required("Email is required."),
     street: yup.string().required("Street is required."),
     city: yup.string().required("City is required."),
-    zip: yup.number().required("Zip is required."),
+    zip: yup
+      .string()
+      .matches(/^\d{6}$/, "Zip code must be 6 digits")
+      .required("Zip is required."),
   });
 
   const formik = useFormik({
@@ -28,39 +31,82 @@ const UserForm = () => {
     validationSchema: validation,
     validateOnChange: false,
     validateOnBlur: false,
-    onSubmit: () => {
+    onSubmit: (values) => {
+      const { name, email, street, city, zip } = values;
+      if (step == 1) {
+        if (!name) {
+          formik.setFieldError("name", "Please enter name.");
+          return;
+        }
+
+        if (!email) {
+          formik.setFieldError("email", "Please enter email");
+          return;
+        }
+        setStep(2);
+      } else if (step == 2) {
+        if (!street) {
+          formik.setFieldError("street", "Please enter street");
+          return;
+        }
+
+        if (!city) {
+          formik.setFieldError("city", "Please enter City");
+          return;
+        }
+
+        if (!zip) {
+          formik.setFieldError("zip", "Please enter Zip code");
+          return;
+        }
+        setStep(3);
+      }
+      if (step < 3) {
+        return;
+      }
       alert("form submitted successfully");
       formik.resetForm();
       setStep(1);
     },
   });
 
+  console.log(formik.errors, "errors")
+
   const handleValueChange = (value: string, name: string) => {
     formik.setFieldValue(name, value);
     formik.setFieldError(name, "");
   };
 
-  const handleNext = (e: MouseEvent<HTMLButtonElement>) => {
-    if (step == 1) {
-      if (!formik?.values?.email || !formik?.values?.name) {
-        return;
+  const isStepValid = () => {
+    if (step === 1) return formik.values.name && formik.values.email;
+    if (step === 2)
+      return formik.values.street && formik.values.city && formik.values.zip;
+    return true;
+  };
+
+  const validateStep = async () => {
+    try {
+      if (step === 1) {
+        await validation.validateAt("name", formik.values);
+        await validation.validateAt("email", formik.values);
       }
-    } else if (step == 2) {
-      if (
-        !formik?.values?.city ||
-        !formik?.values?.street ||
-        !formik?.values?.zip
-      ) {
-        return;
+      if (step === 2) {
+        await validation.validateAt("street", formik.values);
+        await validation.validateAt("city", formik.values);
+        await validation.validateAt("zip", formik.values);
       }
+      return true;
+    } catch (error) {
+      // formik.setErrors({ ...formik.errors, [error.path]: error.message });
+      return false;
     }
+  };
+  
 
-    // formik.setErrors({});
-    // formik.setFieldError("city", "");
-    // formik.setFieldError("street", "");
-    // formik.setFieldError("zip", "");
-
-    setStep((prev) => prev + 1);
+  const handleNext = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const isValid = await validateStep();
+    if (isValid) setStep((prev) => prev + 1);
   };
 
   return (
@@ -138,25 +184,36 @@ const UserForm = () => {
         )}
         {step == 3 && (
           <div className="summary_container">
-            <span>Name: {formik?.values?.name}</span>
-            <span>Email: {formik?.values?.email}</span>
-            <span>Street: {formik?.values?.street}</span>
-            <span>City: {formik?.values?.city}</span>
-            <span>Zip Code: {formik?.values?.zip}</span>
+            <span>
+              <strong>Name:</strong> {formik?.values?.name}
+            </span>
+            <span>
+              <strong>Email:</strong> {formik?.values?.email}
+            </span>
+            <span>
+              <strong>Street:</strong> {formik?.values?.street}
+            </span>
+            <span>
+              <strong>City:</strong> {formik?.values?.city}
+            </span>
+            <span>
+              <strong>Zip Code:</strong> {formik?.values?.zip}
+            </span>
           </div>
         )}
 
         <div className="button_container">
           {step > 1 && (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 setStep((prev) => prev - 1);
               }}
             >
               Previous
             </button>
           )}
-          {step < 3 && <button type="submit" >Next</button>}
+           {step < 3 && <button onClick={handleNext} disabled={!isStepValid()}>Next</button>}
 
           {step == 3 && <button type="submit">Submit</button>}
         </div>
