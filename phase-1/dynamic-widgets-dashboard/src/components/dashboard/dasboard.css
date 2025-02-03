@@ -1,0 +1,9 @@
+.dashboard{
+    text-align: center;
+    font-size: 40px;
+}
+
+.widgets_container{
+    width: 100%;
+    display: flex;
+}
