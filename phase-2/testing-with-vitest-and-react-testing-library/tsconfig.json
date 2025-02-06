@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "types": ["vitest/globals"]  // Removed "node"
+    "types": ["vitest/globals"],  // Removed "node"
+    "jsx": "react-jsx"
   },
   "references": [
     { "path": "./tsconfig.app.json" },
